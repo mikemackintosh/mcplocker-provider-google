@@ -1,0 +1,55 @@
+# A release is two OCI artifacts: the server image, and the package that
+# names it by digest. Only the package is signed, because the package is
+# what a gateway installs and verifies, and it pins the image exactly.
+#
+# Not yet run end to end; expect to adjust it on the first release.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+  packages: write      # push to ghcr.io
+  id-token: write      # sign with this workflow's identity
+  attestations: write  # record the attestation
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/provider-google-server
+      PACKAGE: ghcr.io/${{ github.repository_owner }}/provider-google
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: mcplocker/server
+          path: .gateway
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27"
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - run: go mod edit -replace github.com/mcplocker/server/pkg/providerkit=./.gateway/pkg/providerkit
+      - run: make test
+      - run: make build VERSION="${GITHUB_REF_NAME#v}"
+      - name: Push the server image
+        id: image
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 --push \
+            --metadata-file dist/image.json -t "$IMAGE:${GITHUB_REF_NAME#v}" .
+          digest=$(jq -r '."containerimage.digest"' dist/image.json)
+          echo "ref=$IMAGE@$digest" >> "$GITHUB_OUTPUT"
+      - name: Render the manifest pinned to that image
+        run: ./scripts/render-manifest.sh "${{ steps.image.outputs.ref }}" "${GITHUB_REF_NAME#v}"
+      - name: Push the package
+        id: package
+        run: |
+          ref=$(cd .gateway && go run ./cmd/gateway -push-provider "$GITHUB_WORKSPACE/dist/package" -to "$PACKAGE:${GITHUB_REF_NAME#v}")
+          echo "digest=${ref#*@}" >> "$GITHUB_OUTPUT"
+      - name: Sign the package
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.PACKAGE }}
+          subject-digest: ${{ steps.package.outputs.digest }}
+          push-to-registry: true

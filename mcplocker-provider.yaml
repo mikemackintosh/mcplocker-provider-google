@@ -1,0 +1,148 @@
+apiVersion: mcplocker.dev/provider/v1
+slug: google
+name: Google Workspace
+version: 0.1.0
+description: Calendar, Tasks, Drive (read-only) and Gmail, through each person's own Google grant.
+homepage: https://github.com/mcplocker/provider-google
+icon: icon.svg
+kind: server
+protocol: mcp
+server:
+  # The release workflow replaces this with the digest of the image it built
+  # (scripts/render-manifest.sh); a manifest is only ever published pinned.
+  image: ghcr.io/mcplocker/provider-google-server@sha256:0000000000000000000000000000000000000000000000000000000000000000
+credentials:
+  - id: oauth
+    label: Google account
+    description: Your own Google sign-in. Each service asks only for its own scopes.
+    owner: user
+    kind: oauth2
+    oauth:
+      flow: authorization_code
+      authorize_url: https://accounts.google.com/o/oauth2/v2/auth
+      token_url: https://oauth2.googleapis.com/token
+      userinfo_url: https://openidconnect.googleapis.com/v1/userinfo
+      pkce: S256
+      client_auth: client_secret_post
+      scopes: [openid, email]
+      # A refresh token comes only with offline access, and only on a
+      # consent Google has just shown.
+      params: { access_type: offline, prompt: consent, include_granted_scopes: "true" }
+      require:
+        - { claim: email_verified, source: userinfo, equals: "true" }
+      identity: { source: userinfo, claim: email }
+    hosts: [accounts.google.com, oauth2.googleapis.com, openidconnect.googleapis.com, www.googleapis.com, gmail.googleapis.com]
+    apply:
+      headers: { Authorization: "Bearer {{token.access}}" }
+services:
+  - slug: calendar
+    name: Google Calendar
+    description: >-
+      Read your calendars and events, and create, change, respond to and cancel events on them.
+      Invitations are sent when a tool says they are; nothing is sent silently.
+    credentials: [oauth]
+    scopes: [https://www.googleapis.com/auth/calendar]
+    labels: [google]
+    tools:
+      list_calendars: { tags: [read] }
+      list_events: { tags: [read] }
+      get_event: { tags: [read] }
+      find_free_time: { tags: [read] }
+      create_event: { tags: [write] }
+      quick_add_event: { tags: [write] }
+      update_event: { tags: [write] }
+      respond_to_event: { tags: [write] }
+      move_event: { tags: [write] }
+      delete_event: { tags: [destructive] }
+    setup: &connect
+      - who: user
+        title: Connect with your Google account
+        body: Click Connect, sign in to Google and approve access. You can disconnect at any time from this page.
+  - slug: tasks
+    name: Google Tasks
+    description: "Read and manage your task lists and tasks: create, complete, move, delete."
+    credentials: [oauth]
+    scopes: [https://www.googleapis.com/auth/tasks]
+    labels: [google]
+    tools:
+      list_task_lists: { tags: [read] }
+      create_task_list: { tags: [write] }
+      delete_task_list: { tags: [destructive] }
+      list_tasks: { tags: [read] }
+      get_task: { tags: [read] }
+      create_task: { tags: [write] }
+      update_task: { tags: [write] }
+      complete_task: { tags: [write] }
+      reopen_task: { tags: [write] }
+      move_task: { tags: [write] }
+      delete_task: { tags: [destructive] }
+      clear_completed_tasks: { tags: [write] }
+    setup: *connect
+  - slug: drive
+    name: Google Drive
+    description: "Find and read files in your Drive. Read-only: nothing here can change, share or delete a file."
+    credentials: [oauth]
+    scopes: [https://www.googleapis.com/auth/drive.readonly]
+    labels: [google]
+    tools:
+      search_files: { tags: [read] }
+      get_file_metadata: { tags: [read] }
+    setup: *connect
+  - slug: gmail
+    name: Gmail
+    description: >-
+      Search and read your mail, manage labels and filters, and write drafts. Sending a draft is
+      its own tool, so an approval policy can sit in front of it. Every result is labelled as
+      personal data.
+    credentials: [oauth]
+    scopes: [https://www.googleapis.com/auth/gmail.modify, https://www.googleapis.com/auth/gmail.settings.basic]
+    labels: [google, pii]
+    tools:
+      search_messages: { tags: [read] }
+      get_message: { tags: [read] }
+      list_labels: { tags: [read] }
+      get_label: { tags: [read] }
+      create_label: { tags: [write] }
+      modify_message_labels: { tags: [write] }
+      list_filters: { tags: [read] }
+      get_filter: { tags: [read] }
+      create_filter: { tags: [write] }
+      update_filter: { tags: [write] }
+      delete_filter: { tags: [destructive] }
+      list_drafts: { tags: [read] }
+      get_draft: { tags: [read] }
+      create_draft: { tags: [write] }
+      update_draft: { tags: [write] }
+      delete_draft: { tags: [destructive] }
+      send_draft: { tags: [destructive, open-world] }
+      send_message: { tags: [destructive, open-world] }
+    setup: *connect
+setup:
+  - who: admin
+    title: Pick or create a Google Cloud project
+    body: Any project the organization controls. mcplocker's OAuth client will live in it.
+    link: https://console.cloud.google.com/projectselector2/home/dashboard
+  - who: admin
+    title: Enable the Calendar, Tasks, Drive and Gmail APIs
+    body: Under APIs & Services → Library, enable Google Calendar API, Google Tasks API, Google Drive API and Gmail API for the project.
+    link: https://console.cloud.google.com/apis/library
+  - who: admin
+    title: Configure the OAuth consent screen with these scopes
+    body: >-
+      Internal user type if the organization is a Workspace tenant — then the scopes need no Google
+      review. External needs verification for the Gmail scopes, which Google classes as restricted.
+    link: https://console.cloud.google.com/apis/credentials/consent
+    copy: |-
+      https://www.googleapis.com/auth/calendar
+      https://www.googleapis.com/auth/tasks
+      https://www.googleapis.com/auth/drive.readonly
+      https://www.googleapis.com/auth/gmail.modify
+      https://www.googleapis.com/auth/gmail.settings.basic
+  - who: admin
+    title: Create an OAuth client of type Web application and add mcplocker's redirect URI
+    body: >-
+      Under Credentials → Create credentials → OAuth client ID, of type Web application. Add the
+      redirect URI exactly as shown, then copy the client id and secret into the form beside these steps.
+    link: https://console.cloud.google.com/apis/credentials
+    copy: "{{callback_url}}"
+labels: [google]
