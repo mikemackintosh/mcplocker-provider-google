@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mcplocker/provider-google/internal/id"
-	"github.com/mcplocker/provider-google/internal/provider"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/id"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/provider"
 )
 
 const calBase = apiBase + "/calendar/v3"

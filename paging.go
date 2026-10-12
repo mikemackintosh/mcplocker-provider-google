@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mcplocker/provider-google/internal/provider"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/provider"
 )
 
 // Every list tool pages the same way, because every Google list API does:

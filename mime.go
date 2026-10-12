@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mcplocker/provider-google/internal/id"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/id"
 )
 
 // A message the drafting tools build. Gmail takes the whole thing as an

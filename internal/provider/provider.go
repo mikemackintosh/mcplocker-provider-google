@@ -6,8 +6,8 @@ package provider
 import (
 	"encoding/json"
 
-	"github.com/mcplocker/provider-google/internal/ifc"
 	"github.com/mcplocker/server/pkg/providerkit"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/ifc"
 )
 
 // Tool is one tool's description; the service's call function runs it.

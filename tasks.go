@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mcplocker/provider-google/internal/provider"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/provider"
 )
 
 const tasksBase = apiBase + "/tasks/v1"

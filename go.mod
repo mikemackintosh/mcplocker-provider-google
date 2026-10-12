@@ -1,4 +1,4 @@
-module github.com/mcplocker/provider-google
+module github.com/mikemackintosh/mcplocker-provider-google
 
 go 1.27
 

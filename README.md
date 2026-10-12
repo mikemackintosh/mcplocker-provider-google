@@ -38,8 +38,10 @@ These expect a checkout of the gateway at `../../mcplocker` (override with `GATE
 ## Release
 
 Push a tag `vX.Y.Z` matching `version:` in the manifest. The image goes to
-`ghcr.io/mcplocker/provider-google-server`, and the signed package to
-`ghcr.io/mcplocker/provider-google`.
+`ghcr.io/mikemackintosh/mcplocker-provider-google-server`, and the signed package to
+`ghcr.io/mikemackintosh/mcplocker-provider-google`. A gateway installs it only after an
+admin trusts `mikemackintosh` as a publisher (Admin → Providers → Install → Publishers):
+the signature check names the trusted GitHub owners, and only `mcplocker` is trusted by default.
 
 ## Not yet
 

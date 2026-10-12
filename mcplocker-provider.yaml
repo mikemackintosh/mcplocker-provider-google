@@ -3,14 +3,14 @@ slug: google
 name: Google Workspace
 version: 0.1.0
 description: Calendar, Tasks, Drive (read-only) and Gmail, through each person's own Google grant.
-homepage: https://github.com/mcplocker/provider-google
+homepage: https://github.com/mikemackintosh/mcplocker-provider-google
 icon: icon.svg
 kind: server
 protocol: mcp
 server:
   # The release workflow replaces this with the digest of the image it built
   # (scripts/render-manifest.sh); a manifest is only ever published pinned.
-  image: ghcr.io/mcplocker/provider-google-server@sha256:0000000000000000000000000000000000000000000000000000000000000000
+  image: ghcr.io/mikemackintosh/mcplocker-provider-google-server@sha256:0000000000000000000000000000000000000000000000000000000000000000
 credentials:
   - id: oauth
     label: Google account

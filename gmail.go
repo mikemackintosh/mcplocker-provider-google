@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mcplocker/provider-google/internal/ifc"
-	"github.com/mcplocker/provider-google/internal/provider"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/ifc"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/provider"
 )
 
 const gmBase = gmailBase + "/gmail/v1/users/me"

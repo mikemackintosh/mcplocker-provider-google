@@ -9,8 +9,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/mcplocker/provider-google/internal/provider"
 	"github.com/mcplocker/server/pkg/providerkit"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/provider"
 )
 
 // version is set at build time (-ldflags "-X main.version=…").

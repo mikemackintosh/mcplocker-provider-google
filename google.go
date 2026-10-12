@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mcplocker/provider-google/internal/ifc"
-	"github.com/mcplocker/provider-google/internal/provider"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/ifc"
+	"github.com/mikemackintosh/mcplocker-provider-google/internal/provider"
 )
 
 // The write tools carry the knowledge the raw APIs leave to the caller: a
